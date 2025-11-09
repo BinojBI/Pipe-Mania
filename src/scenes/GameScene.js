@@ -19,16 +19,21 @@ export class GameScene extends Phaser.Scene {
     };
 
     preload() {
-        //this.load.json('gameConfig', 'assets/config/game_config.json');
+
+        this.load.json('gameConfigData', 'assets/config/game_config.json');
 
         this.load.image('background', 'assets/images/background.png');
-        this.load.image('grid cell', 'assets/images/grid_cell.png');
+        this.load.atlas('pipesAtlas', 'assets/images/pipes_and_cell_atlas.png', 'assets/images/pipes_and_cell_atlas.json');
 
-        this.load.image('straight_pipe', 'assets/images/straight_pipe.png');
-        this.load.image('cross_pipe', 'assets/images/cross_pipe.png');
-        this.load.image('bend_pipe', 'assets/images/bend_pipe.png');
-        this.load.image('block_cell', 'assets/images/block_cell.png');
-        this.load.image('start_pipe', 'assets/images/start_pipe.png');
+        this.load.image('win_window', 'assets/images/win_window.png');
+        this.load.image('lost_window', 'assets/images/lost_window.png');
+        this.load.image('restart_button', 'assets/images/restart_button.png');
+        this.load.image('main_menu_button', 'assets/images/main_menu_button.png');
+
+        this.load.audio('explosionSound', 'assets/audio/explosion.wav');
+        this.load.audio('placeSound', 'assets/audio/place_pipe.wav');
+        this.load.audio('flowSound', 'assets/audio/flow.wav');
+        this.load.audio('clickSound', 'assets/audio/click.wav');
 
         this.load.spritesheet('explosion', 'assets/spritesheets/explosion.png', {
             frameWidth: 90,
@@ -37,7 +42,13 @@ export class GameScene extends Phaser.Scene {
     }
 
     create() {
-        this.configData = GameConfig;
+        
+        this.configData = this.cache.json.get('gameConfigData');
+
+        if (!this.configData) {
+        console.warn("Configuration file not loaded! Using default GameConfig.");
+        this.configData = GameConfig; 
+        }
 
         const bg = this.add.image(0, 0, 'background').setOrigin(0,0);
         const sceneWidth = bg.width;   
@@ -81,11 +92,17 @@ export class GameScene extends Phaser.Scene {
             repeat: 0
         });
 
+        this.sfx = {
+            explosion: this.sound.add('explosionSound'),
+            place: this.sound.add('placeSound'),
+            click: this.sound.add('clickSound'),
+            flow: this.sound.add('flowSound', { loop: true, volume: 1 }) // loop water sound
+        };
+
         this.createGrid();
         this.createUI();
         this.createPipeQueue();
         this.placeStartPipe();
-
     }
 
 
@@ -94,7 +111,7 @@ export class GameScene extends Phaser.Scene {
 
         for (let y = 0; y < this.rows; y++) {
             for (let x = 0; x < this.cols; x++) {
-                const cell = this.add.image(this.gridStartX + x * this.cellSize, this.gridStartY + y * this.cellSize, 'grid cell')
+                const cell = this.add.image(this.gridStartX + x * this.cellSize, this.gridStartY + y * this.cellSize, 'pipesAtlas', 'grid_cell')
                     .setOrigin(0)
                     .setInteractive();
                 cell.gridX = x;
@@ -102,7 +119,6 @@ export class GameScene extends Phaser.Scene {
 
                 cell.on('pointerover', () => { if (!this.gameOver) cell.setTint(0xffff00); });
                 cell.on('pointerout', () => { cell.clearTint(); });
-
                 cell.on('pointerdown', () => this.handleCellClick(cell));
 
                 this.gridCells.push(cell);
@@ -127,7 +143,7 @@ export class GameScene extends Phaser.Scene {
         Phaser.Utils.Array.Shuffle(availableCells);
         const blockedCells = availableCells.slice(0, this.blockedCellCount);
         blockedCells.forEach(c => {
-            const block = this.add.image(c.x + this.cellSize / 2, c.y + this.cellSize / 2, 'block_cell').setOrigin(0.5);
+            const block = this.add.image(c.x + this.cellSize / 2, c.y + this.cellSize / 2, 'pipesAtlas', 'block_cell').setOrigin(0.5);
             c.disableInteractive();
             const data = this.gridData[c.gridY][c.gridX];
             data.isBlocked = true;
@@ -156,7 +172,7 @@ export class GameScene extends Phaser.Scene {
         this.statusText = this.add.text(
             this.gridStartX + this.gridWidth - 10,
             this.gridStartY - 30,
-            `Pipes remaining: ${this.minimumPipes}`,
+            `Minimum Distance: ${this.minimumPipes}`,
             { font: '24px Arial', fill: '#ffffff', align: 'right' }
         ).setOrigin(1, 0);
 
@@ -164,8 +180,8 @@ export class GameScene extends Phaser.Scene {
         this.delayText = this.add.text(
             this.gridStartX,
             this.gridStartY - 30,
-            'Fill Delay: 0s',
-            { font: '22px Arial', fill: '#00ff00' }
+            'Fill Start In: 0s',
+            { font: '22px Arial', fill: '#ffffff' }
         ).setOrigin(0, 0);
     }
 
@@ -176,7 +192,7 @@ export class GameScene extends Phaser.Scene {
             const validAngles = this.validAnglesForType(randomPipe);
             const randomAngle = Phaser.Utils.Array.GetRandom(validAngles);
 
-            const pipe = this.add.image(this.queueStartX, this.queueStartY + i * this.pipeSpacing, randomPipe)
+            const pipe = this.add.image(this.queueStartX, this.queueStartY + i * this.pipeSpacing, 'pipesAtlas', randomPipe)
                 .setOrigin(0.5)
                 .setAngle(randomAngle);
 
@@ -192,7 +208,7 @@ export class GameScene extends Phaser.Scene {
     validAnglesForType(pipeType) {
         if (pipeType === 'straight_pipe') return [0, 90];
         if (pipeType === 'bend_pipe') return [0, 90, 180, 270];
-        return [0]; // cross and default
+        return [0]; 
     }
 
     placeStartPipe() {
@@ -215,7 +231,7 @@ export class GameScene extends Phaser.Scene {
         const rotations = [0, 90, 180, 270];
         const randomAngle = Phaser.Utils.Array.GetRandom(rotations);
 
-        const startSprite = this.add.image(startCell.x + this.cellSize / 2, startCell.y + this.cellSize / 2, 'start_pipe')
+        const startSprite = this.add.image(startCell.x + this.cellSize / 2, startCell.y + this.cellSize / 2, 'pipesAtlas','start_pipe')
             .setOrigin(0.5)
             .setAngle(randomAngle);
 
@@ -235,6 +251,7 @@ export class GameScene extends Phaser.Scene {
                 this.handleNextPipe(startCell.gridX, startCell.gridY, randomAngle);
             });
             this.flowStarted = true;
+            this.sfx.flow.play();
         });
     }
 
@@ -297,9 +314,11 @@ export class GameScene extends Phaser.Scene {
 
         if (!nextPipe) return;
 
+        this.sfx.place.play();
+
         const gridX = cell.gridX, gridY = cell.gridY;
 
-        const placed = this.add.image(cell.x + this.cellSize / 2, cell.y + this.cellSize / 2, nextPipe.texture.key)
+        const placed = this.add.image(cell.x + this.cellSize / 2, cell.y + this.cellSize / 2, 'pipesAtlas', nextPipe.pipeType)
             .setOrigin(0.5)
             .setAngle(nextPipe.pipeAngle);
 
@@ -324,7 +343,7 @@ export class GameScene extends Phaser.Scene {
 
         const newRandom = Phaser.Utils.Array.GetRandom(this.pipeTypes);
         const newAngle = Phaser.Utils.Array.GetRandom(this.validAnglesForType(newRandom));
-        const newPipe = this.add.image(this.queueStartX, this.queueStartY + (this.queueCount - 1) * this.pipeSpacing, newRandom)
+        const newPipe = this.add.image(this.queueStartX, this.queueStartY + (this.queueCount - 1) * this.pipeSpacing, 'pipesAtlas', newRandom)
             .setOrigin(0.5)
             .setAngle(newAngle);
         newPipe.pipeType = newRandom;
@@ -385,7 +404,6 @@ export class GameScene extends Phaser.Scene {
             });
         };
 
-        // if no fromDir (start pipe), animate center -> out
         const outDirs = GameScene.PIPE_CONNECTIONS[pipeType][angle] || [];
         if (!fromDir) {
             const out = outDirs[0];
@@ -393,16 +411,13 @@ export class GameScene extends Phaser.Scene {
             return;
         }
 
-        // cross: animate only entry->center here; exit will be animated in handleNextPipe when chosen
         if (pipeType === 'cross_pipe') {
             this.drawFill(dirPos[fromDir].x, dirPos[fromDir].y, cx, cy, onComplete);
             return;
         }
 
-        // normal pipe: find other end and animate two-phase
         const toDir = outDirs.find(d => d !== fromDir);
         if (!toDir) {
-            // no exit, but still animate entry->center
             this.drawFill(dirPos[fromDir].x, dirPos[fromDir].y, cx, cy, onComplete);
             return;
         }
@@ -428,14 +443,13 @@ export class GameScene extends Phaser.Scene {
             const enter = GameScene.DIRS[outDir].opposite;
             if (!GameScene.PIPE_CONNECTIONS[next.type][next.angle]?.includes(enter)) return false;
 
-            // animate the next cell (enter direction = enter)
             this.animateCellFill(next.cellRef, next.angle, next.type, enter, () => {
                 this.handleNextPipe(nx, ny, next.angle, enter);
             });
             return true;
         };
 
-        // CROSS: pick longest path among outgoing dirs (excluding fromDir)
+        // CROSS - pick longest path among outgoing dirs (excluding fromDir)
         if (type === 'cross_pipe') {
             const candidates = outDirs.filter(d => d !== fromDir);
             const scored = [];
@@ -461,8 +475,6 @@ export class GameScene extends Phaser.Scene {
 
             const enterDir = GameScene.DIRS[chosen].opposite;
 
-            // animate center -> chosen exit on the cross
-            // calculate center positions for cross cell visual
             const cellRef = current.cellRef;
             const cx = cellRef.x + cellRef.displayWidth / 2;
             const cy = cellRef.y + cellRef.displayHeight / 2;
@@ -486,7 +498,7 @@ export class GameScene extends Phaser.Scene {
             return;
         }
 
-        // Non-cross pipes: check all outgoing (excluding fromDir) and continue for each valid one
+        // Non-cross pipes - check all outgoing (excluding fromDir) and continue for each valid one
         const validOutDirs = fromDir ? outDirs.filter(d => d !== fromDir) : outDirs;
         let progressed = false;
         for (const outDir of validOutDirs) {
@@ -498,13 +510,12 @@ export class GameScene extends Phaser.Scene {
             if (!GameScene.PIPE_CONNECTIONS[next.type][next.angle]?.includes(enter)) continue;
 
             progressed = true;
-            // animate next and recurse
+
             this.animateCellFill(next.cellRef, next.angle, next.type, enter, () => {
                 this.handleNextPipe(nx, ny, next.angle, enter);
             });
         }
 
-        // If nothing progressed from here, flow ended at this pipe
         if (!progressed) {
             this.checkFlowEnd(gridX, gridY, fromDir, outDirs);
         }
@@ -557,6 +568,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     playPipeExplosion(x, y, onComplete) {
+        this.sfx.explosion.play();
+
         const explosion = this.add.sprite(x, y, 'explosion').setScale(1);
         explosion.play('pipe_explosion');
         explosion.on('animationcomplete', () => {
@@ -567,9 +580,8 @@ export class GameScene extends Phaser.Scene {
 
     startFillDelayTimer(delayMs) {
         if (this.delayTimerEvent) this.delayTimerEvent.remove(false);
-
         let remaining = Math.ceil(delayMs / 1000);
-        this.delayText.setText(`Fill Delay: ${remaining}s`);
+        this.delayText.setText(`Fill Start In: ${remaining}s`);
         this.delayText.setVisible(true);
 
         this.delayTimerEvent = this.time.addEvent({
@@ -578,44 +590,83 @@ export class GameScene extends Phaser.Scene {
             callback: () => {
                 remaining -= 1;
                 if (remaining <= 0) {
-                    this.delayText.setText('Fill Delay: 0s');
+                    this.delayText.setText('Fill Start In: 0s');
                     this.delayTimerEvent.remove(false);
-                    // optionally hide after 0
-                    // this.delayText.setVisible(false);
                 } else {
-                    this.delayText.setText(`Fill Delay: ${remaining}s`);
+                    this.delayText.setText(`Fill Start In: ${remaining}s`);
                 }
             }
         });
     }
 
-    winGame() { this.endGame('🎉 You Win!', '#00ff00'); }
-    loseGame() { this.endGame('💧 Game Over', '#ff3333'); }
+    winGame() {
+    this.endGame(true);  // true = win
+    }
 
-    endGame(titleText, color) {
+    loseGame() {
+        this.endGame(false); // false = lose
+    }
+
+    endGame(isWin) {
         this.gameOver = true;
+
+        if (this.sfx.flow?.isPlaying) {
+            this.sfx.flow.stop();
+        }
+
         this.gridCells.forEach(c => c.disableInteractive());
 
-        // overlay
-        const overlay = this.add.rectangle(this.cameras.main.centerX, this.cameras.main.centerY, this.cameras.main.width, this.cameras.main.height, 0x000000, 0.6);
+        this.add.rectangle(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY,
+            this.cameras.main.width,
+            this.cameras.main.height,
+            0x000000,
+            0.6
+        ).setDepth(10);
 
-        const dialog = this.add.rectangle(this.cameras.main.centerX, this.cameras.main.centerY, 420, 220, 0x222222, 1).setStrokeStyle(3, 0xffffff).setOrigin(0.5);
-
-        this.add.text(this.cameras.main.centerX, this.cameras.main.centerY - 60, titleText, { font: '36px Arial', fill: color, fontStyle: 'bold' }).setOrigin(0.5);
-
-        const mainMenuBtn = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY + 10, 'Main Menu', { font: '26px Arial', fill: '#ffffff', backgroundColor: '#444', padding: { x: 20, y: 10 } })
+        const windowKey = isWin ? 'win_window' : 'lost_window';
+        const windowSprite = this.add.image(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY,
+            windowKey
+        )
             .setOrigin(0.5)
-            .setInteractive({ useHandCursor: true })
-            .on('pointerover', () => mainMenuBtn.setStyle({ backgroundColor: '#666' }))
-            .on('pointerout', () => mainMenuBtn.setStyle({ backgroundColor: '#444' }))
-            .on('pointerdown', () => this.scene.start('MainMenu'));
+            .setDepth(11)
+            .setScale(0.8); 
 
-        const restartBtn = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY + 70, 'Restart', { font: '26px Arial', fill: '#ffffff', backgroundColor: '#444', padding: { x: 20, y: 10 } })
+        const restartBtn = this.add.image(
+            this.cameras.main.centerX - 90,
+            this.cameras.main.centerY + windowSprite.displayHeight / 3,
+            'restart_button'
+        )
             .setOrigin(0.5)
+            .setDepth(12)
+            .setScale(0.8)
             .setInteractive({ useHandCursor: true })
-            .on('pointerover', () => restartBtn.setStyle({ backgroundColor: '#666' }))
-            .on('pointerout', () => restartBtn.setStyle({ backgroundColor: '#444' }))
-            .on('pointerdown', () => this.scene.restart());
+            .on('pointerover', () => restartBtn.setScale(0.9))
+            .on('pointerout', () => restartBtn.setScale(0.8))
+            .on('pointerdown', () => {
+                this.sfx.click.play();
+                this.scene.restart();
+            });
+
+        const mainMenuBtn = this.add.image(
+            this.cameras.main.centerX + 90,
+            this.cameras.main.centerY + windowSprite.displayHeight / 3,
+            'main_menu_button'
+        )
+            .setOrigin(0.5)
+            .setDepth(12)
+            .setScale(0.8)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerover', () => mainMenuBtn.setScale(0.9))
+            .on('pointerout', () => mainMenuBtn.setScale(0.8))
+            .on('pointerdown', () => {
+                this.sfx.click.play();
+                this.scene.start('MainMenu');
+            });
     }
+
 
 }

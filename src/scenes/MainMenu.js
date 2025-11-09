@@ -6,32 +6,45 @@ export class MainMenu extends Phaser.Scene {
 
      preload() {
         this.load.image('background', 'assets/images/background.png');
+        this.load.image('logo', 'assets/images/logo.png');
+        this.load.image('start button', 'assets/images/start_game_button.png');
+
+        this.load.audio('clickSound', 'assets/audio/click.wav');
+        this.load.audio('music', 'assets/audio/music.wav');
+
     }
 
     create() {
 
+        this.sfx = {
+            click: this.sound.add('clickSound'),
+            music: this.sound.add('music', { loop: true, volume: 1 })
+        }
+
+        this.sfx.music.play();
+        
         this.add.image(0, 0, 'background').setOrigin(0,0);
-        this.add.text(
+        this.add.image(
             this.cameras.main.centerX,
             this.cameras.main.centerY -100,
-            'Pipe Mania',
-            { font: '48px Arial', fill: '#ffffff' }
+            'logo',
         ).setOrigin(0.5)
 
-        const startBtn = this.add.text(
+        const startBtn = this.add.image(
             this.cameras.main.centerX,
-            this.cameras.main.centerY,
-            'Start Game', 
-            { font: '32px Arial',
-            fill: '#ffffff',
-            backgroundColor: '#444',
-            padding: { x: 20, y: 10 }
-        })
+            this.cameras.main.centerY + 200,
+            'start button'
+        )
             .setOrigin(0.5)
             .setInteractive({ useHandCursor: true })
-            .on('pointerover', () => startBtn.setStyle({ backgroundColor: '#666' }))
-            .on('pointerout', () => startBtn.setStyle({ backgroundColor: '#444' }))
+            .on('pointerover', () => startBtn.setScale(1.05))
+            .on('pointerout', () => startBtn.setScale(1))
             .on('pointerdown', () => {
+                if (this.sfx.music?.isPlaying) {
+                    this.sfx.music.stop();
+                }
+                this.sfx.click.play();
+
                 this.scene.start('GameScene');
             });
     }

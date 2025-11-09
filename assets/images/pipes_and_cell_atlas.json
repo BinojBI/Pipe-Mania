@@ -1,0 +1,60 @@
+{
+  "frames": {
+    "grid_cell": {
+      "frame": { "x": 0, "y": 0, "w": 90, "h": 90 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 90, "h": 90 },
+      "sourceSize": { "w": 90, "h": 90 },
+      "pivot": { "x": 0.5, "y": 0.5 }
+    },
+    "block_cell": {
+      "frame": { "x": 90, "y": 0, "w": 90, "h": 90 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 90, "h": 90 },
+      "sourceSize": { "w": 90, "h": 90 },
+      "pivot": { "x": 0.5, "y": 0.5 }
+    },
+    "start_pipe": {
+      "frame": { "x": 180, "y": 0, "w": 90, "h": 90 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 90, "h": 90 },
+      "sourceSize": { "w": 90, "h": 90 },
+      "pivot": { "x": 0.5, "y": 0.5 }
+    },
+    "bend_pipe": {
+      "frame": { "x": 0, "y": 90, "w": 90, "h": 90 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 90, "h": 90 },
+      "sourceSize": { "w": 90, "h": 90 },
+      "pivot": { "x": 0.5, "y": 0.5 }
+    },
+    "straight_pipe": {
+      "frame": { "x": 90, "y": 90, "w": 90, "h": 90 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 90, "h": 90 },
+      "sourceSize": { "w": 90, "h": 90 },
+      "pivot": { "x": 0.5, "y": 0.5 }
+    },
+    "cross_pipe": {
+      "frame": { "x": 180, "y": 90, "w": 90, "h": 90 },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 90, "h": 90 },
+      "sourceSize": { "w": 90, "h": 90 },
+      "pivot": { "x": 0.5, "y": 0.5 }
+    }
+  },
+  "meta": {
+    "app": "Manual JSON for Phaser 3",
+    "version": "1.0",
+    "image": "pipes_atlas.png",
+    "format": "RGBA8888",
+    "size": { "w": 270, "h": 180 },
+    "scale": "1"
+  }
+}
