@@ -2,7 +2,7 @@
 export const GameConfig = {
     GRID: {
         COLS: 9,
-        ROWS: 8,
+        ROWS: 7,
         CELL_SIZE: 90,
         BLOCK_CELL_COUNT: 5
     },
