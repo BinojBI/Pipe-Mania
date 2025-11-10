@@ -1,4 +1,4 @@
-import { GameConfig } from '../config/game_config.js';
+
 export class GameScene extends Phaser.Scene {
     constructor() {
         super('GameScene');
@@ -19,7 +19,6 @@ export class GameScene extends Phaser.Scene {
     };
 
     preload() {
-
         this.load.json('gameConfigData', 'assets/config/game_config.json');
 
         this.load.image('background', 'assets/images/background.png');
@@ -44,11 +43,6 @@ export class GameScene extends Phaser.Scene {
     create() {
         
         this.configData = this.cache.json.get('gameConfigData');
-
-        if (!this.configData) {
-        console.warn("Configuration file not loaded! Using default GameConfig.");
-        this.configData = GameConfig; 
-        }
 
         const bg = this.add.image(0, 0, 'background').setOrigin(0,0);
         const sceneWidth = bg.width;   
@@ -96,7 +90,7 @@ export class GameScene extends Phaser.Scene {
             explosion: this.sound.add('explosionSound'),
             place: this.sound.add('placeSound'),
             click: this.sound.add('clickSound'),
-            flow: this.sound.add('flowSound', { loop: true, volume: 1 }) // loop water sound
+            flow: this.sound.add('flowSound', { loop: true, volume: 0.6 }) // loop water sound
         };
 
         this.createGrid();
