@@ -1,6 +1,6 @@
 # Pipe Mania
 
-Pipe mania is browser-based puzzle game made with phaser, tech stack based on JavaScript/TypeScript/HTML5. The game is played using any modern browser through the following link.
+Pipe mania is browser-based puzzle game made with phaser, tech stack based on JavaScript/TypeScript/HTML5. The game is played using any modern browser through this link.
 https://binojbi.github.io/Pipe-Mania/
 
 ## How game works
@@ -20,10 +20,10 @@ Pipe Queue available next to the grid and it shows the next pipe pieces availabl
 
 ## Screenshots
 
-![StartScreen](/Screenshots/screenshot1.png?raw=true "Start Screen")
-![GameScreen](/Screenshots/screenshot2.png?raw=true "Game Screen")
-![WinScreen](/Screenshots/screenshot3.png?raw=true "Win Screen")
-![LoseScreen](/Screenshots/screenshot4.png?raw=true "Lose Screen")
+![StartScreen](/screenshots/screenshot1.png?raw=true "Start Screen")
+![GameScreen](/screenshots/screenshot2.png?raw=true "Game Screen")
+![WinScreen](/screenshots/screenshot3.png?raw=true "Win Screen")
+![LoseScreen](/screenshots/screenshot4.png?raw=true "Lose Screen")
 
 ## Developer and Configuration Guide
 
