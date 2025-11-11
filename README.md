@@ -56,15 +56,21 @@ All major gameplay settings can be adjusted in the external JSON file.
 | Grid Rows     |            GRID.ROWS            | Number of rows in the grid.                                                       |       7       |
 | Cell Size     |         GRID.CELL_SIZE          | Pixel size of each grid tile (determines scale).                                  |      90       |
 | Blocked Cells |      GRID.BLOCK_CELL_COUNT      | The number of random cells that start blocked/unusable.                           |       5       |
-| Flow Speed    |           FLOW.SPEED            | Delay (in milliseconds) between water filling each pipe segment. Lower is faster. |      50       |
+| Flow Speed    |           FLOW.SPEED            | Delay (in milliseconds) between water filling each pipe segment. Lower is faster. |      10       |
 | Flow Color    |           FLOW.COLOR            | The hex color of the flowing water (must be a string).                            |  “0x1BB7E6”   |
 | Minimum Pipes | GAMEPLAY.MINIMUM_DISTANCE_PIPES | The number of connected pipes required to reach a win condition.                  |      10       |
 
 Asset Management
 
-- Texture Atlas: All main pipe and grid assets are packed into a single texture atlas named pipesAtlas.
+- Texture Atlas: All UI elements except background, main pipe and grid assets are packed into a single texture atlas seperately named uiElementAtlas and pipesAtlas respectively.
+  - Image: assets/images/ui_element_atlas.png
+  - Data: assets/images/ui_element_atlas.json
   - Image: assets/images/pipes_and_cell_atlas.png
   - Data: assets/images/pipes_and_cell_atlas.json
+
+### Test cases
+
+All the test cases has been been updated in excel sheet given in this link : https://docs.google.com/spreadsheets/d/1DHCfyAshXWeWqz_iQ74aWnbzrADs3x4LTRHTbT9jZvA/edit?gid=0#gid=0
 
 ### Credits (Audio)
 

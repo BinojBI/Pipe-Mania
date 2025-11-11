@@ -6,8 +6,7 @@ export class MainMenu extends Phaser.Scene {
 
      preload() {
         this.load.image('background', 'assets/images/background.png');
-        this.load.image('logo', 'assets/images/logo.png');
-        this.load.image('start button', 'assets/images/start_game_button.png');
+        this.load.atlas('uiElementAtlas', 'assets/images/ui_element_atlas.png', 'assets/images/ui_element_atlas.json');
 
         this.load.audio('clickSound', 'assets/audio/click.wav');
         this.load.audio('music', 'assets/audio/music.wav');
@@ -27,13 +26,15 @@ export class MainMenu extends Phaser.Scene {
         this.add.image(
             this.cameras.main.centerX,
             this.cameras.main.centerY -100,
+            'uiElementAtlas',
             'logo',
         ).setOrigin(0.5)
 
         const startBtn = this.add.image(
             this.cameras.main.centerX,
             this.cameras.main.centerY + 200,
-            'start button'
+            'uiElementAtlas',
+            'start_game_button'
         )
             .setOrigin(0.5)
             .setInteractive({ useHandCursor: true })

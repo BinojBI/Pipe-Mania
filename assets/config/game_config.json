@@ -1,14 +1,14 @@
 
 {
     "GRID": {
-        "COLS": 8,
+        "COLS": 9,
         "ROWS": 7,
         "CELL_SIZE": 90,
-        "BLOCK_CELL_COUNT": 6
+        "BLOCK_CELL_COUNT": 5
     },
 
     "FLOW": {
-        "SPEED": 20,        
+        "SPEED": 10,        
         "DELAY": 5000,       
         "COLOR": "0x1BB7E6" 
     },
