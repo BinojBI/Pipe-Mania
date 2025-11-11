@@ -16,7 +16,7 @@ export class GameScene extends Phaser.Scene {
             left: { dx: -1, dy: 0, opposite: 'right' },
             top: { dx: 0, dy: -1, opposite: 'bottom' },
             bottom: { dx: 0, dy: 1, opposite: 'top' }
-    };
+    };  
 
     preload() {
         this.load.json('gameConfigData', 'assets/config/game_config.json');
@@ -32,7 +32,7 @@ export class GameScene extends Phaser.Scene {
         this.load.audio('explosionSound', 'assets/audio/explosion.wav');
         this.load.audio('placeSound', 'assets/audio/place_pipe.wav');
         this.load.audio('flowSound', 'assets/audio/flow.wav');
-        this.load.audio('clickSound', 'assets/audio/click.wav');
+        this.load.audio('clickSound', 'assets/audio/click.wav');    
 
         this.load.spritesheet('explosion', 'assets/spritesheets/explosion.png', {
             frameWidth: 90,
@@ -52,6 +52,7 @@ export class GameScene extends Phaser.Scene {
         this.rows = this.configData.GRID.ROWS;
         this.cellSize = this.configData.GRID.CELL_SIZE;
         this.blockedCellCount = this.configData.GRID.BLOCK_CELL_COUNT;
+        this.cellActualSize = 90;
 
         this.gridWidth = this.cols * this.cellSize;
         this.gridHeight = this.rows * this.cellSize;
@@ -64,7 +65,6 @@ export class GameScene extends Phaser.Scene {
         this.fillDelay = this.configData.FLOW.DELAY;       
         this.flowSpeed = this.configData.FLOW.SPEED;
 
-
         this.minimumPipes = this.configData.GAMEPLAY.MINIMUM_DISTANCE_PIPES;    
         this.connectedPipesCount = 0;  
         this.minimumRequiredLength = this.minimumPipes;
@@ -75,9 +75,9 @@ export class GameScene extends Phaser.Scene {
 
         this.pipeTypes = ['straight_pipe', 'cross_pipe', 'bend_pipe'];
         this.queueCount = 4;
-        this.pipeSpacing = 100;
-        this.queueStartX = this.gridStartX + this.gridWidth + 150;
-        this.queueStartY = this.gridStartY + (this.gridHeight / 2) - ((this.queueCount - 1) * this.pipeSpacing) / 2;
+        this.pipeSpacing = this.cellSize + 10;
+        this.queueStartX = this.gridStartX - this.cellSize;
+        this.queueStartY = this.gridStartY + (  this.cellSize/2);
 
         this.anims.create({
             key: 'pipe_explosion',
@@ -107,6 +107,7 @@ export class GameScene extends Phaser.Scene {
             for (let x = 0; x < this.cols; x++) {
                 const cell = this.add.image(this.gridStartX + x * this.cellSize, this.gridStartY + y * this.cellSize, 'pipesAtlas', 'grid_cell')
                     .setOrigin(0)
+                    .setScale(this.cellSize/this.cellActualSize)
                     .setInteractive();
                 cell.gridX = x;
                 cell.gridY = y;
@@ -137,7 +138,9 @@ export class GameScene extends Phaser.Scene {
         Phaser.Utils.Array.Shuffle(availableCells);
         const blockedCells = availableCells.slice(0, this.blockedCellCount);
         blockedCells.forEach(c => {
-            const block = this.add.image(c.x + this.cellSize / 2, c.y + this.cellSize / 2, 'pipesAtlas', 'block_cell').setOrigin(0.5);
+            const block = this.add.image(c.x + this.cellSize / 2, c.y + this.cellSize / 2, 'pipesAtlas', 'block_cell')
+            .setScale(this.cellSize/this.cellActualSize)
+            .setOrigin(0.5);
             c.disableInteractive();
             const data = this.gridData[c.gridY][c.gridX];
             data.isBlocked = true;
@@ -186,8 +189,11 @@ export class GameScene extends Phaser.Scene {
             const validAngles = this.validAnglesForType(randomPipe);
             const randomAngle = Phaser.Utils.Array.GetRandom(validAngles);
 
-            const pipe = this.add.image(this.queueStartX, this.queueStartY + i * this.pipeSpacing, 'pipesAtlas', randomPipe)
+            const yPos = this.queueStartY + (this.queueCount - 1 - i) * this.pipeSpacing;
+
+            const pipe = this.add.image(this.queueStartX, yPos, 'pipesAtlas', randomPipe)
                 .setOrigin(0.5)
+                .setScale(this.cellSize/this.cellActualSize)
                 .setAngle(randomAngle);
 
             pipe.pipeType = randomPipe;
@@ -227,6 +233,7 @@ export class GameScene extends Phaser.Scene {
 
         const startSprite = this.add.image(startCell.x + this.cellSize / 2, startCell.y + this.cellSize / 2, 'pipesAtlas','start_pipe')
             .setOrigin(0.5)
+            .setScale(this.cellSize/this.cellActualSize)
             .setAngle(randomAngle);
 
         startCell.isStart = true;
@@ -314,6 +321,7 @@ export class GameScene extends Phaser.Scene {
 
         const placed = this.add.image(cell.x + this.cellSize / 2, cell.y + this.cellSize / 2, 'pipesAtlas', nextPipe.pipeType)
             .setOrigin(0.5)
+            .setScale(this.cellSize/this.cellActualSize)
             .setAngle(nextPipe.pipeAngle);
 
         this.gridData[gridY][gridX] = {
@@ -330,15 +338,16 @@ export class GameScene extends Phaser.Scene {
 
         for (let i = 1; i < this.pipeQueue.length; i++) {
             const pipe = this.pipeQueue[i];
-            this.tweens.add({ targets: pipe, y: pipe.y - this.pipeSpacing, duration: 200, ease: 'Power2' });
+            this.tweens.add({ targets: pipe, y: pipe.y + this.pipeSpacing, duration: 200, ease: 'Power2' });
         }
 
         this.pipeQueue.shift();
 
         const newRandom = Phaser.Utils.Array.GetRandom(this.pipeTypes);
         const newAngle = Phaser.Utils.Array.GetRandom(this.validAnglesForType(newRandom));
-        const newPipe = this.add.image(this.queueStartX, this.queueStartY + (this.queueCount - 1) * this.pipeSpacing, 'pipesAtlas', newRandom)
+        const newPipe = this.add.image(this.queueStartX, this.queueStartY, 'pipesAtlas', newRandom)
             .setOrigin(0.5)
+            .setScale(this.cellSize/this.cellActualSize)
             .setAngle(newAngle);
         newPipe.pipeType = newRandom;
         newPipe.pipeAngle = newAngle;
@@ -473,7 +482,7 @@ export class GameScene extends Phaser.Scene {
             const cx = cellRef.x + cellRef.displayWidth / 2;
             const cy = cellRef.y + cellRef.displayHeight / 2;
             const dirPos = {
-                top: { x: cx, y: cy - cellRef.displayHeight / 2 },
+                top: { x: cx, y: cy - cellRef.displayHeight / 2 },  
                 bottom: { x: cx, y: cy + cellRef.displayHeight / 2 },
                 left: { x: cx - cellRef.displayWidth / 2, y: cy },
                 right: { x: cx + cellRef.displayWidth / 2, y: cy }
