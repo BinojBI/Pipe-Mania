@@ -609,6 +609,8 @@ export class GameScene extends Phaser.Scene {
 
     const next = this.gridData[ny]?.[nx];
     if (!next || !next.type) return 0;
+    //if next pipe filled already but flow if no long path found
+    if (next.isFilled) return 0.5;
 
     const enter = GameScene.DIRS[dir].opposite;
     if (!GameScene.PIPE_CONNECTIONS[next.type][next.angle]?.includes(enter))
